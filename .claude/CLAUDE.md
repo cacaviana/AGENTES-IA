@@ -26,3 +26,18 @@ Repositorio com agentes IT Valley em pastas individuais.
 - `opc-a-ui-ux-opcional`
 - `opc-b-mensageria-opcional`
 - `opc-c-engenheiro-de-dados-plus-bi-opcional`
+
+## Deploy (OBRIGATÓRIO — NÃO usar zip deploy)
+- **Método**: GitHub Actions (CI/CD via `.github/workflows`)
+- **NUNCA** fazer deploy via zip, pacote local ou `az webapp deploy --src-path`
+- **Servidor Azure**: `plan-tcc` (App Service Plan)
+- **Resource Group**: `rg-webapp`
+- **Configurações obrigatórias no App Service**:
+  - SCM Basic Auth Publishing: `true`
+  - Basic Authentication: `true`
+- **Fluxo correto**:
+  1. Criar/atualizar workflow em `.github/workflows/`
+  2. Usar `actions/checkout` + build + `azure/webapps-deploy` (ou deploy via SCM/Kudu)
+  3. Publish profile ou OIDC como credencial (salvar no GitHub Secrets)
+  4. Push para o branch trigger → GitHub Actions faz o deploy automaticamente
+- **NUNCA gerar arquivo zip para deploy manual**

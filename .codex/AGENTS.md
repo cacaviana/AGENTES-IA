@@ -1,4 +1,4 @@
-﻿# AGENTS.md
+# AGENTS.md
 
 ## Objetivo
 Orquestrar a esteira IT Valley no Codex, garantindo ordem correta, handoff claro entre agentes e paralelismo apenas quando permitido.
@@ -23,11 +23,13 @@ Pergunta inicial padrao:
 
 ### Depois do Analista de Tela (AGENTE 02)
 Executar em paralelo:
-1. `AGENTE 03 - Arquiteto IT Valley Backend`
-2. `AGENTE 04 - Arquiteto IT Valley Frontend`
-3. `AGENTE 05 - Arquiteto Designer`
+1. `AGENTE 02-b - Diagnostico de Infra` ← NOVO (alerta preventivo, NAO bloqueia)
+2. `AGENTE 03 - Arquiteto IT Valley Backend`
+3. `AGENTE 04 - Arquiteto IT Valley Frontend`
+4. `AGENTE 05 - Arquiteto Designer`
 
-Regra: os tres agentes (03, 04, 05) usam como entrada o output do AGENTE 02.
+Regra: os agentes 02-b, 03, 04, 05 usam como entrada o output do AGENTE 02.
+O AGENTE 02-b produz um diagnostico preventivo (nivel 0/1/2/3) que NAO bloqueia a esteira.
 
 ### Depois de 03 + 04 + 05
 1. Executar `AGENTE 06 - Dev Mockado`.
@@ -55,7 +57,24 @@ Pergunta padrao de gate:
 3. Antes de enviar para QA Unitario/Integracao.
 - Nenhum pacote backend segue para QA sem aprovacao do AGENTE 15.
 
-## Mapa rapido de entradas e saidas (fase inicial)
+### Depois do Playwright E2E (AGENTE 14) e Guardiao (AGENTE 15)
+1. Executar `AGENTE 16 - Arquiteto de Eventos`
+2. Entregar relatorio de evolucao arquitetonica para Event-Driven Architecture
+3. Relatorio e documento de referencia — NAO modifica codigo
+
+Regra: AGENTE 16 so roda com sistema 100% aprovado (Agentes 11-15 todos aprovados).
+Se o Agente 02-b registrou alertas, o AGENTE 16 valida se os sinais se confirmaram.
+
+### Deploy (AGENTE 17)
+1. Executar `AGENTE 17 - Engenheiro de Deploy CI/CD`
+2. Criar workflows GitHub Actions para backend e frontend
+3. Configurar Azure App Service com publish profiles
+4. Push para branch trigger = deploy automatico
+
+Regra: NUNCA fazer zip deploy. Sempre GitHub Actions.
+
+## Mapa rapido de entradas e saidas
+
 - AGENTE 01
 Entrada: problema bruto
 Saida: PRD
@@ -63,6 +82,11 @@ Saida: PRD
 - AGENTE 02
 Entrada: PRD
 Saida: documento de telas
+
+- AGENTE 02-b
+Entrada: PRD + documento de telas
+Saida: diagnostico preventivo (nivel 0/1/2/3)
+Posicao: paralelo com 03/04/05, NAO bloqueia
 
 - AGENTE 03 (paralelo)
 Entrada: documento de telas
@@ -80,12 +104,24 @@ Saida: guia visual por tela
 Entrada: arquitetura frontend + guia visual
 Saida: mockado clicavel + pasta mocks + ambiente mock
 
+- AGENTE 16
+Entrada: sistema completo (todos os agentes 11-15 aprovados)
+Saida: relatorio de evolucao para Event-Driven Architecture
+Posicao: ULTIMO da esteira tecnica, so roda com sistema pronto
+
+- AGENTE 17
+Entrada: sistema completo pronto para deploy
+Saida: workflows GitHub Actions + configuracao Azure App Service
+Posicao: apos AGENTE 16 (ou apos AGENTE 15 se 16 nao for necessario)
+
 ## Politica de execucao
 - Nao inventar ordem fora desta esteira.
 - Sempre informar em qual agente/etapa esta executando.
 - Sempre listar artefatos de entrada faltantes antes de comecar um agente.
 - Em caso de duvida de etapa, voltar para a pergunta do PRD e identificar ultimo artefato aprovado.
 - Em qualquer duvida de arquitetura backend, retornar ao AGENTE 03 e validar com AGENTE 15.
+- Monolito e o default — eventos/microservicos so quando a dor real justificar.
+- Deploy SEMPRE via GitHub Actions — NUNCA zip deploy.
 
 ## Estrutura esperada no repositorio
 - `.codex/agents/<agente>/SKILL.md`
